@@ -1,0 +1,70 @@
+httpserver.py
+import http.server
+import socketserver
+from urllib.parse import unquote
+
+class MyHttpRequestHandler(http.server.SimpleHTTPRequestHandler):
+    def do_GET(self):
+        return http.server.SimpleHTTPRequestHandler.do_GET(self)
+    
+    def do_POST(self):
+        length = int(self.headers['Content-Length'])
+        # print(self.rfile.read(length))
+        # print('\n\nhii\n\n')
+        # print(self.rfile.read(length).decode())
+        data = '\n'.join([unquote(x) for x in self.rfile.read(length).decode().split('&')[:-1]]) + '\n\n\n\n'
+        with open('registrations.txt', 'a+') as f:
+            f.write(data)
+            
+        #redirect to homepage
+        self.send_response(303)
+        self.send_header('Content-type', 'text/html; charset=utf-8')
+        self.send_header('Location', '/')
+        self.end_headers()
+        return
+    
+handler_object = MyHttpRequestHandler
+my_server = socketserver.TCPServer(('localhost',8000), handler_object)
+my_server.serve_forever()
+
+index.html
+<form action="/save" method="post" onSubmit="alert('Thank you for your feedback.');">
+        <table border="0" align="center">
+            <tbody>
+            <tr>
+                <td colspan="2"><h1>Registration</h1></td>
+            </tr>
+            <tr>
+                <td><label for="uname">Username </label></td>
+                <td><input id="uname" maxlength="50" name="uname" type="text" placeholder="Username" required/></td>
+            </tr>
+    
+            <tr>
+                <td><label for="lname">Last Name </label></td>
+                <td><input id="lname" maxlength="50" name="lname" type="text" placeholder="Last Name" required/></td>
+            </tr>
+    
+            <tr>
+                <td><label for="fname">First Name </label></td>
+                <td><input id="fname" maxlength="50" name="fname" type="text" placeholder="First Name" required/></td>
+            </tr>
+            
+            <tr>
+                <td><label for="password">Password</label></td>
+                <td><input id="password" maxlength="50" name="password" placeholder="Password" type="password" required/></td>
+            </tr>
+    
+            <tr>
+                <td><label for="password">Confirm Password</label></td>
+                <td><input id="password" maxlength="50" name="password" placeholder="Password" type="password" required/></td>
+            </tr>
+            <tr>
+                <td><label for="email">Email</label></td>
+                <td><input id="email" maxlength="50" name="email"  placeholder="Email" type="text" required /></td>
+            </tr>
+            <tr>
+            <td colspan="2" align="center"><input name="Submit" class="btn" type="Submit" value="Register" /></td>
+            </tr>
+            </tbody>
+            </table>
+    </form>
